@@ -2,6 +2,18 @@ import logging
 import os
 from ruamel.yaml import YAML
 import socket
+import sys
+
+def _parse_extra_env(logzio_extra):
+  extra_env = {}
+  logzio_extra = logzio_extra.split("\n")
+  logzio_extra.remove('')
+  for key_and_value in logzio_extra:
+    list_key_val = key_and_value.split("=")
+    if len(list_key_val) > 1:
+      key, val = list_key_val[0], list_key_val[1]
+      extra_env[key] = val
+  return extra_env
 
 # set vars and consts
 
@@ -10,7 +22,8 @@ logzio_url_arr = logzio_url.split(":")
 logzio_token = os.environ["LOGZIO_TOKEN"]
 logzio_codec = os.environ["LOGZIO_CODEC"] if os.environ["LOGZIO_CODEC"] else "plain"
 if logzio_codec not in ["json", "plain"]:
-    raise InputError("can only accept `plain` or `json`")
+    raise ValueError("can only accept `plain` or `json`")
+logzio_extra = _parse_extra_env(os.environ["LOGZIO_EXTRA"])
 
 HOST = logzio_url_arr[0]
 PORT = int(logzio_url_arr[1])
@@ -40,7 +53,9 @@ def _add_shipping_data():
 
     config_dic["output"]["logstash"]["hosts"].append(logzio_url)
     config_dic["filebeat.inputs"][0]["fields"]["token"] = logzio_token
-    config_dic["filebeat.inputs"][0]["fields"]["logzio_codec"] = logzio_token
+    config_dic["filebeat.inputs"][0]["fields"]["logzio_codec"] = logzio_codec
+    for key, val in logzio_extra.items():
+        config_dic["filebeat.inputs"][0]["fields"][key] = val
 
     with open(FILEBEAT_CONF_PATH, "w+") as filebeat_yml:
         yaml.dump(config_dic, filebeat_yml)
@@ -83,6 +98,7 @@ def _include_containers():
 
     with open(FILEBEAT_CONF_PATH, "w+") as updated_filebeat_yml:
         yaml.dump(config_dic, updated_filebeat_yml)
+
 
 
 _is_open()
