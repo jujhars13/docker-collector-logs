@@ -7,7 +7,7 @@ import sys
 def _parse_extra_env(logzio_extra):
   extra_env = {}
   logzio_extra = logzio_extra.split("\n")
-  logzio_extra.remove('')
+  logzio_extra = [item for item in logzio_extra if item != '']
   for key_and_value in logzio_extra:
     list_key_val = key_and_value.split("=")
     if len(list_key_val) > 1:
@@ -16,7 +16,6 @@ def _parse_extra_env(logzio_extra):
   return extra_env
 
 # set vars and consts
-
 logzio_url = os.environ["LOGZIO_URL"]
 logzio_url_arr = logzio_url.split(":")
 logzio_token = os.environ["LOGZIO_TOKEN"]
