@@ -8,6 +8,9 @@ import socket
 logzio_url = os.environ["LOGZIO_URL"]
 logzio_url_arr = logzio_url.split(":")
 logzio_token = os.environ["LOGZIO_TOKEN"]
+logzio_codec = os.environ["LOGZIO_CODEC"] if os.environ["LOGZIO_CODEC"] else "plain"
+if logzio_codec not in ["json", "plain"]:
+    raise InputError("can only accept `plain` or `json`")
 
 HOST = logzio_url_arr[0]
 PORT = int(logzio_url_arr[1])
@@ -37,6 +40,7 @@ def _add_shipping_data():
 
     config_dic["output"]["logstash"]["hosts"].append(logzio_url)
     config_dic["filebeat.inputs"][0]["fields"]["token"] = logzio_token
+    config_dic["filebeat.inputs"][0]["fields"]["logzio_codec"] = logzio_token
 
     with open(FILEBEAT_CONF_PATH, "w+") as filebeat_yml:
         yaml.dump(config_dic, filebeat_yml)
