@@ -1,13 +1,10 @@
 #!/bin/bash
 
-export LOGZIO_TOKEN="<ACCOUNT-TOKEN>" 
-export LOGZIO_URL="<LISTENER-URL>:5015" 
-export LOGZIO_CODEC="json" 
-export LOGZIO_EXTRA="
-account=gcp
-environment=production
-application=countdown-timer
-" 
+export skipContainerName=loadbalancer
+export LOGZIO_CODEC=json
+export LOGZIO_URL="listener.logz.io:5015"
+export LOGZIO_TOKEN=tXgcSIwFDffzSXNIVhoiexsOuDoAskAi
+export LOGZIO_EXTRA="account=gcp\nenvironment=production\napplication=countdown-timer\ndeveloper=rafaelAndJujhar"
 
 
 echo "test"

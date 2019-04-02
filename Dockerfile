@@ -1,3 +1,6 @@
+# Build with:
+#   `docker build -t logzio-docker:latest .`
+
 FROM python:3.7-slim
 
 COPY requirements.txt ./requirements.txt

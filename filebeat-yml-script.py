@@ -2,11 +2,16 @@ import logging
 import os
 from ruamel.yaml import YAML
 import socket
-import sys
+
+logging.basicConfig(format='%(asctime)s\t%(levelname)s\t%(message)s', level=logging.DEBUG)
+
+FILEBEAT_CONF_PATH = "/etc/filebeat/filebeat.yml"
+SOCKET_TIMEOUT = 3
+
 
 def _parse_extra_env(logzio_extra):
   extra_env = {}
-  logzio_extra = logzio_extra.split("\n")
+  logzio_extra = logzio_extra.split("\\n")
   logzio_extra = [item for item in logzio_extra if item != '']
   for key_and_value in logzio_extra:
     list_key_val = key_and_value.split("=")
@@ -15,21 +20,22 @@ def _parse_extra_env(logzio_extra):
       extra_env[key] = val
   return extra_env
 
-# set vars and consts
-logzio_url = os.environ["LOGZIO_URL"]
-logzio_url_arr = logzio_url.split(":")
-logzio_token = os.environ["LOGZIO_TOKEN"]
-logzio_codec = os.environ["LOGZIO_CODEC"] if os.environ["LOGZIO_CODEC"] else "plain"
-if logzio_codec not in ["json", "plain"]:
-    raise ValueError("can only accept `plain` or `json`")
-logzio_extra = _parse_extra_env(os.environ["LOGZIO_EXTRA"])
 
-HOST = logzio_url_arr[0]
-PORT = int(logzio_url_arr[1])
-FILEBEAT_CONF_PATH = "/etc/filebeat/filebeat.yml"
-SOCKET_TIMEOUT = 3
+def _load_configuration():
+    logzio_url = os.environ["LOGZIO_URL"]
+    logzio_url_arr = logzio_url.split(":")
+    logzio_token = os.environ["LOGZIO_TOKEN"]
+    logzio_codec = os.environ["LOGZIO_CODEC"] if os.environ["LOGZIO_CODEC"] else "plain"
+    if logzio_codec not in ["json", "plain"]:
+        raise ValueError("can only accept `plain` or `json`")
+    logzio_extra = os.environ["LOGZIO_EXTRA"]
+    logzio_extra = logzio_extra.replace('"', "")
+    logzio_extra = _parse_extra_env(logzio_extra)
+    return logzio_url, logzio_url_arr, logzio_token, logzio_codec, logzio_extra
 
-logging.basicConfig(format='%(asctime)s\t%(levelname)s\t%(message)s', level=logging.DEBUG)
+
+logzio_url, logzio_url_arr, logzio_token, logzio_codec, logzio_extra = _load_configuration()
+HOST, PORT = logzio_url_arr[0], int(logzio_url_arr[1])
 
 
 def _is_open():
@@ -97,7 +103,6 @@ def _include_containers():
 
     with open(FILEBEAT_CONF_PATH, "w+") as updated_filebeat_yml:
         yaml.dump(config_dic, updated_filebeat_yml)
-
 
 
 _is_open()
